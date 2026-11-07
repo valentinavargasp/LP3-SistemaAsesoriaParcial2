@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+namespace SistemaAsesoria2.Pages;
+
 public class DocumentosModel : PageModel
 {
     private readonly IWebHostEnvironment _env;
@@ -13,7 +15,9 @@ public class DocumentosModel : PageModel
     }
 
     public string? UsuarioActual { get; set; }
+    public string? NombreCompletoActual { get; set; }
     public string? ClaveRecuperadaCookie { get; set; }
+    public string CarpetaUsuario { get; set; } = string.Empty;
     public string? MensajeExito { get; set; }
     public string? MensajeError { get; set; }
 
@@ -31,6 +35,8 @@ public class DocumentosModel : PageModel
             return RedirectToPage("/Registro");
         }
 
+        NombreCompletoActual = HttpContext.Session.GetString("NombreCompleto");
+
         // 2. Leer la contraseña desde la Cookie
         ClaveRecuperadaCookie = Request.Cookies["PasswordCookie"];
 
@@ -45,6 +51,8 @@ public class DocumentosModel : PageModel
         {
             return RedirectToPage("/Registro");
         }
+
+        NombreCompletoActual = HttpContext.Session.GetString("NombreCompleto");
         ClaveRecuperadaCookie = Request.Cookies["PasswordCookie"];
 
         if (DocumentoSubido is null || DocumentoSubido.Length <= 0)
@@ -55,7 +63,7 @@ public class DocumentosModel : PageModel
         }
 
         // Validar extensiones de documentos legales
-        string extension = Path.GetExtension(DocumentoSubido.FileName).ToLower();
+        string extension = Path.GetExtension(DocumentoSubido.FileName).ToLowerInvariant();
         string[] extensionesPermitidas = { ".pdf", ".docx", ".doc", ".txt" };
         if (!extensionesPermitidas.Contains(extension))
         {
@@ -64,8 +72,8 @@ public class DocumentosModel : PageModel
             return Page();
         }
 
-        // Ruta física de destino dentro de wwwroot
-        string carpetaDestino = Path.Combine(_env.WebRootPath, "documentos_legales");
+        // Ruta física del espacio personal del usuario dentro de wwwroot/documentos_legales
+        string carpetaDestino = ObtenerRutaEspacioUsuario();
         if (!Directory.Exists(carpetaDestino))
         {
             Directory.CreateDirectory(carpetaDestino);
@@ -77,7 +85,7 @@ public class DocumentosModel : PageModel
         // Control de duplicados 
         if (System.IO.File.Exists(rutaCompleta))
         {
-            MensajeError = $"El archivo '{nombreLimpio}' ya existe en el servidor.";
+            MensajeError = $"El archivo '{nombreLimpio}' ya existe en su espacio personal.";
             CargarArchivos();
             return Page();
         }
@@ -88,7 +96,7 @@ public class DocumentosModel : PageModel
             await DocumentoSubido.CopyToAsync(stream);
         }
 
-        MensajeExito = $"Documento '{nombreLimpio}' subido con éxito al repositorio legal.";
+        MensajeExito = $"Documento '{nombreLimpio}' subido con éxito a su espacio legal.";
         CargarArchivos();
         return Page();
     }
@@ -100,16 +108,37 @@ public class DocumentosModel : PageModel
         return RedirectToPage("/Index");
     }
 
+    private string ObtenerRutaEspacioUsuario()
+    {
+        char[] invalidos = Path.GetInvalidFileNameChars();
+        string usuarioSanitizado = new string((UsuarioActual ?? "general")
+            .Where(c => !invalidos.Contains(c))
+            .ToArray())
+            .Trim();
+
+        if (string.IsNullOrEmpty(usuarioSanitizado))
+        {
+            usuarioSanitizado = "usuario";
+        }
+
+        CarpetaUsuario = usuarioSanitizado;
+        return Path.Combine(_env.WebRootPath, "documentos_legales", CarpetaUsuario);
+    }
+
     private void CargarArchivos()
     {
         ArchivosGuardados.Clear();
-        string carpetaDestino = Path.Combine(_env.WebRootPath, "documentos_legales");
+        string carpetaDestino = ObtenerRutaEspacioUsuario();
         if (Directory.Exists(carpetaDestino))
         {
             string[] rutas = Directory.GetFiles(carpetaDestino);
             foreach (var r in rutas)
             {
-                ArchivosGuardados.Add(Path.GetFileName(r));
+                string nombre = Path.GetFileName(r);
+                if (!nombre.StartsWith("."))
+                {
+                    ArchivosGuardados.Add(nombre);
+                }
             }
         }
     }

@@ -490,7 +490,6 @@ publish/
 
 ## Configuraciones locales de desarrollo
 appsettings.Development.json
-Properties/launchSettings.json
 
 ## Archivos del sistema y de editores
 .DS_Store

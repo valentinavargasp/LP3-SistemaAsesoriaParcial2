@@ -9,7 +9,11 @@
     <div class="col-lg-4 mb-4">
         <div class="card card-legal p-3 bg-white rounded-3">
             <h5 class="fw-bold text-dark border-bottom pb-2">Espacio Personal</h5>
-            <p class="mb-1"><strong>Cliente activo:</strong> @Model.UsuarioActual</p>
+            @if (!string.IsNullOrEmpty(Model.NombreCompletoActual))
+            {
+                <p class="mb-1"><strong>Cliente:</strong> @Model.NombreCompletoActual</p>
+            }
+            <p class="mb-2"><strong>Usuario en sesión:</strong> @Model.UsuarioActual</p>
             <div class="alert alert-secondary py-2 small mb-3">
                 <strong>Cookie verificada:</strong><br />
                 <span class="text-muted">Contraseña: @Model.ClaveRecuperadaCookie</span>
@@ -23,11 +27,11 @@
     <!-- Carga y Repositorio -->
     <div class="col-lg-8">
         <div class="card card-legal p-4 bg-white rounded-3 mb-4">
-            <div class="d-flex align-items-center mb-3">
-                <img src="~/imagenes/logo 3.png" alt="Banner Asesoría Legal" height="46" class="me-3 d-none d-sm-block" />
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center mb-3 gap-3">
+                <img src="~/imagenes/logo 3.png" alt="Banner Asesoría Legal" height="46" class="align-self-start" />
                 <div>
                     <h4 class="fw-bold mb-0">Cargar Documento Legal</h4>
-                    <small class="text-muted">Suba archivos en formatos PDF, Word o TXT de forma segura.</small>
+                    <small class="text-muted">Suba archivos en formatos PDF, Word o TXT de forma segura a su espacio personal.</small>
                 </div>
             </div>
 
@@ -43,14 +47,14 @@
             <form method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label asp-for="DocumentoSubido" class="form-label fw-semibold">Seleccionar archivo desde su equipo:</label>
-                    <input asp-for="DocumentoSubido" type="file" class="form-control" />
+                    <input asp-for="DocumentoSubido" type="file" class="form-control" accept=".pdf,.doc,.docx,.txt" />
                 </div>
                 <button type="submit" class="btn btn-legal">Subir Documento</button>
             </form>
         </div>
 
         <div class="card card-legal p-4 bg-white rounded-3">
-            <h5 class="fw-bold text-dark mb-3">Documentos en el Repositorio</h5>
+            <h5 class="fw-bold text-dark mb-3">Documentos en su Espacio Personal</h5>
             @if (Model.ArchivosGuardados.Count == 0)
             {
                 <p class="text-muted mb-0">Aún no se han cargado documentos en su espacio.</p>
@@ -60,9 +64,9 @@
                 <ul class="list-group">
                     @foreach (var archivo in Model.ArchivosGuardados)
                     {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>📄 @archivo</span>
-                            <a href="~/documentos_legales/@archivo" target="_blank" class="btn btn-sm btn-outline-primary">Ver / Descargar</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <span class="text-break">📄 @archivo</span>
+                            <a href="~/documentos_legales/@Model.CarpetaUsuario/@archivo" target="_blank" class="btn btn-sm btn-outline-primary">Ver / Descargar</a>
                         </li>
                     }
                 </ul>
