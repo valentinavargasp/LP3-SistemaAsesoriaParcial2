@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Asesoría Legal Global</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <!-- Navbar corporativo  -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark-legal shadow-sm py-2">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" asp-page="/Index">
+                    <img src="~/imagenes/logo 2.png" alt="Logo de la Firma" height="42" class="me-2" />
+                    <span class="fw-bold tracking-wide text-gold">Asesoría Legal Global</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-page="/Index">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-page="/Registro">Registro de Clientes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-page="/Documentos">Gestión Documental</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Contenedor central dinámico -->
+    <main role="main" class="flex-grow-1 container py-4">
+        @RenderBody()
+    </main>
+
+    <!-- Footer común persistente -->
+    <footer class="footer mt-auto py-3 bg-dark-legal text-white-50 border-top border-secondary">
+        <div class="container text-center">
+            <small>&copy; 2026 Asesoría Legal Global. Todos los derechos reservados. | Consultoría Jurídica</small>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

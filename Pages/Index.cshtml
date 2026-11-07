@@ -1,0 +1,17 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="p-5 mb-4 bg-white rounded-4 shadow-sm border text-center">
+    <img src="~/imagenes/logo 2.png" alt="Logo Asesoría Legal" height="120" class="mb-3" />
+    <h1 class="display-5 fw-bold text-dark">Asesoría Legal Global</h1>
+    <p class="lead text-muted col-md-8 mx-auto">
+        Plataforma segura para el registro de clientes y gestión centralizada de documentos jurídicos.
+    </p>
+    <div class="mt-4">
+        <a asp-page="/Registro" class="btn btn-legal btn-lg px-4 me-2">Registrarme como Cliente</a>
+        <a asp-page="/Documentos" class="btn btn-outline-secondary btn-lg px-4">Acceder a Gestión Documental</a>
+    </div>
+</div>
