@@ -4,61 +4,64 @@
     ViewData["Title"] = "Registro de Clientes";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card card-legal rounded-4 p-4 bg-white">
-            <div class="text-center mb-3">
-                <img src="~/imagenes/logo 1.png" alt="Logo de Consultoría" height="70" class="mb-2" />
-                <h3 class="fw-bold text-dark">Registro de Clientes</h3>
-                <p class="text-muted small">Complete sus datos para crear su perfil en Asesoría Legal Global.</p>
+<div class="contenedor-estrecho">
+    <section class="tarjeta">
+        <div class="tarjeta-encabezado">
+            <img src="~/imagenes/logo 1.png" alt="Emblema Asesoría Legal Global" class="logo-formulario" />
+            <h1 class="tarjeta-titulo">Registro de Clientes</h1>
+            <p class="tarjeta-subtitulo">Complete el formulario para dar de alta su cuenta y acceder a su espacio documental.</p>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="alerta alerta-error"></div>
+
+        <form method="post" novalidate>
+            <div class="grupo-campo">
+                <label asp-for="NombreApellido" class="etiqueta">Nombre y Apellido *</label>
+                <input asp-for="NombreApellido" class="control-input" placeholder="Ej. Valentina Gómez" />
+                <span asp-validation-for="NombreApellido" class="mensaje-error-campo"></span>
             </div>
 
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-            <form method="post">
-                <div class="mb-3">
-                    <label asp-for="NombreApellido" class="form-label fw-semibold">Nombre y Apellido *</label>
-                    <input asp-for="NombreApellido" class="form-control" placeholder="Ej. Juan Pérez" />
-                    <span asp-validation-for="NombreApellido" class="text-danger small"></span>
+            <div class="fila-campos">
+                <div class="grupo-campo">
+                    <label asp-for="Usuario" class="etiqueta">Nombre de Usuario *</label>
+                    <input asp-for="Usuario" class="control-input" placeholder="Ej. vgomez" />
+                    <span asp-validation-for="Usuario" class="mensaje-error-campo"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Usuario" class="form-label fw-semibold">Nombre de Usuario *</label>
-                    <input asp-for="Usuario" class="form-control" placeholder="Ej. jperez" />
-                    <span asp-validation-for="Usuario" class="text-danger small"></span>
+                <div class="grupo-campo">
+                    <label asp-for="Edad" class="etiqueta">Edad  *</label>
+                    <input asp-for="Edad" type="number" class="control-input" placeholder="Ej. 22" />
+                    <span asp-validation-for="Edad" class="mensaje-error-campo"></span>
+                </div>
+            </div>
+
+            <div class="grupo-campo">
+                <label asp-for="Email" class="etiqueta">Correo Electrónico *</label>
+                <input asp-for="Email" class="control-input" placeholder="cliente@ejemplo.com" />
+                <span asp-validation-for="Email" class="mensaje-error-campo"></span>
+            </div>
+
+            <div class="fila-campos">
+                <div class="grupo-campo">
+                    <label asp-for="Password" class="etiqueta">Contraseña *</label>
+                    <input asp-for="Password" class="control-input" />
+                    <span asp-validation-for="Password" class="mensaje-error-campo"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label fw-semibold">Correo Electrónico *</label>
-                    <input asp-for="Email" class="form-control" placeholder="correo@ejemplo.com" />
-                    <span asp-validation-for="Email" class="text-danger small"></span>
+                <div class="grupo-campo">
+                    <label asp-for="ConfirmPassword" class="etiqueta">Confirmar Contraseña *</label>
+                    <input asp-for="ConfirmPassword" class="control-input" />
+                    <span asp-validation-for="ConfirmPassword" class="mensaje-error-campo"></span>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label asp-for="Edad" class="form-label fw-semibold">Edad *</label>
-                    <input asp-for="Edad" type="number" class="form-control" />
-                    <span asp-validation-for="Edad" class="text-danger small"></span>
-                </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Registrar</button>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Password" class="form-label fw-semibold">Contraseña *</label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirmar Contraseña *</label>
-                        <input asp-for="ConfirmPassword" class="form-control" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                    </div>
-                </div>
-
-                <div class="d-grid mt-3">
-                    <button type="submit" class="btn btn-legal py-2">Registrar e Iniciar Espacio</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            <div class="pie-formulario">
+                ¿Ya se encuentra registrado? <a asp-page="/Login">Iniciar sesión</a>
+            </div>
+        </form>
+    </section>
 </div>
 
 @section Scripts {

@@ -4,73 +4,108 @@
     ViewData["Title"] = "Gestión de Documentos Legales";
 }
 
-<div class="row">
-    <!-- Panel del Usuario Activo -->
-    <div class="col-lg-4 mb-4">
-        <div class="card card-legal p-3 bg-white rounded-3">
-            <h5 class="fw-bold text-dark border-bottom pb-2">Espacio Personal</h5>
-            @if (!string.IsNullOrEmpty(Model.NombreCompletoActual))
-            {
-                <p class="mb-1"><strong>Cliente:</strong> @Model.NombreCompletoActual</p>
-            }
-            <p class="mb-2"><strong>Usuario en sesión:</strong> @Model.UsuarioActual</p>
-            <div class="alert alert-secondary py-2 small mb-3">
-                <strong>Cookie verificada:</strong><br />
-                <span class="text-muted">Contraseña: @Model.ClaveRecuperadaCookie</span>
-            </div>
-            <form method="post" asp-page-handler="CerrarSesion">
-                <button type="submit" class="btn btn-outline-danger btn-sm w-100">Cerrar Sesión</button>
-            </form>
+<div class="panel-documentos-grid">
+    <!-- Columna Izquierda: Perfil del Espacio Personal -->
+    <aside class="tarjeta">
+        <div class="tarjeta-encabezado">
+            <img src="~/imagenes/logo 2.png" alt="Logo Asesoría Legal" class="marca-logo" style="margin-bottom: 0.5rem;" />
+            <h2 class="tarjeta-titulo" style="font-size: 1.25rem;">Mi Espacio Personal</h2>
+            <p class="tarjeta-subtitulo">Sesión de cliente verificada</p>
         </div>
-    </div>
 
-    <!-- Carga y Repositorio -->
-    <div class="col-lg-8">
-        <div class="card card-legal p-4 bg-white rounded-3 mb-4">
-            <div class="d-flex flex-column flex-sm-row align-items-sm-center mb-3 gap-3">
-                <img src="~/imagenes/logo 3.png" alt="Banner Asesoría Legal" height="46" class="align-self-start" />
+        @if (!string.IsNullOrEmpty(Model.NombreCompletoActual))
+        {
+            <div class="perfil-item">
+                <span class="perfil-etiqueta">Cliente Titular</span>
+                <span class="perfil-valor">@Model.NombreCompletoActual</span>
+            </div>
+        }
+
+        <div class="perfil-item">
+            <span class="perfil-etiqueta">Usuario en Sesión</span>
+            <span class="perfil-valor">@Model.UsuarioActual</span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.EmailActual))
+        {
+            <div class="perfil-item">
+                <span class="perfil-etiqueta">Correo Electrónico</span>
+                <span class="perfil-valor">@Model.EmailActual</span>
+            </div>
+        }
+
+        <div class="perfil-item">
+            <span class="perfil-etiqueta">Archivos Resguardados</span>
+            <span class="perfil-valor">@Model.ArchivosGuardados.Count documento(s)</span>
+        </div>
+
+        <a asp-page="/Salir" class="btn btn-secundario btn-bloque">Cerrar Sesión</a>
+    </aside>
+
+    <!-- Columna Derecha: Subida y Listado de Documentos -->
+    <div>
+        <section class="tarjeta" style="margin-bottom: 1.5rem;">
+            <div class="encabezado-subida">
+                <img src="~/imagenes/logo 1.png" alt="Icono Consultoría Legal" />
                 <div>
-                    <h4 class="fw-bold mb-0">Cargar Documento Legal</h4>
-                    <small class="text-muted">Suba archivos en formatos PDF, Word o TXT de forma segura a su espacio personal.</small>
+                    <h1 class="tarjeta-titulo" style="font-size: 1.35rem;">Cargar Documento Legal</h1>
+                    <p class="tarjeta-subtitulo">Formatos admitidos: PDF, Word (.doc, .docx), TXT o Imágenes (.jpg, .png) — Máx. 5 MB.</p>
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(Model.MensajeExito))
             {
-                <div class="alert alert-success">@Model.MensajeExito</div>
-            }
-            @if (!string.IsNullOrEmpty(Model.MensajeError))
-            {
-                <div class="alert alert-danger">@Model.MensajeError</div>
+                <div class="alerta alerta-exito">@Model.MensajeExito</div>
             }
 
             <form method="post" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label asp-for="DocumentoSubido" class="form-label fw-semibold">Seleccionar archivo desde su equipo:</label>
-                    <input asp-for="DocumentoSubido" type="file" class="form-control" accept=".pdf,.doc,.docx,.txt" />
+                <div class="grupo-campo">
+                    <label asp-for="DocumentoSubido" class="etiqueta">Seleccionar documento desde su equipo *</label>
+                    <input asp-for="DocumentoSubido" type="file" class="control-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" />
+                    <span asp-validation-for="DocumentoSubido" class="mensaje-error-campo"></span>
                 </div>
-                <button type="submit" class="btn btn-legal">Subir Documento</button>
-            </form>
-        </div>
 
-        <div class="card card-legal p-4 bg-white rounded-3">
-            <h5 class="fw-bold text-dark mb-3">Documentos en su Espacio Personal</h5>
+                <button type="submit" class="btn btn-primario">Subir Documento al Repositorio</button>
+            </form>
+        </section>
+
+        <section class="tarjeta">
+            <h2 class="tarjeta-titulo" style="font-size: 1.25rem; margin-bottom: 1rem;">Documentos en mi Espacio</h2>
+
             @if (Model.ArchivosGuardados.Count == 0)
             {
-                <p class="text-muted mb-0">Aún no se han cargado documentos en su espacio.</p>
+                <p class="tarjeta-subtitulo">Todavía no ha subido ningún documento legal a su espacio personal.</p>
             }
             else
             {
-                <ul class="list-group">
+                <ul class="lista-archivos">
                     @foreach (var archivo in Model.ArchivosGuardados)
                     {
-                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <span class="text-break">📄 @archivo</span>
-                            <a href="~/documentos_legales/@Model.CarpetaUsuario/@archivo" target="_blank" class="btn btn-sm btn-outline-primary">Ver / Descargar</a>
+                        <li class="item-archivo">
+                            <span class="nombre-archivo">📄 @archivo</span>
+                            <div class="acciones-archivo">
+                                <a href="~/documentos_legales/@Model.CarpetaUsuario/@Uri.EscapeDataString(archivo)"
+                                   target="_blank"
+                                   class="btn btn-secundario btn-pequeno">
+                                    Ver / Descargar
+                                </a>
+                                <form method="post" asp-page-handler="Eliminar" class="form-inline">
+                                    <input type="hidden" name="nombreArchivo" value="@archivo" />
+                                    <button type="submit"
+                                            class="btn btn-peligro"
+                                            onclick="return confirm('¿Está seguro de que desea eliminar este documento?');">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </div>
                         </li>
                     }
                 </ul>
             }
-        </div>
+        </section>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

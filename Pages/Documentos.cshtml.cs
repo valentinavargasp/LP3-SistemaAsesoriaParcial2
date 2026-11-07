@@ -2,45 +2,49 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SistemaAsesoria2.Servicios;
 
 namespace SistemaAsesoria2.Pages;
 
 public class DocumentosModel : PageModel
 {
     private readonly IWebHostEnvironment _env;
+    private readonly GestorClientes _gestorClientes;
 
-    public DocumentosModel(IWebHostEnvironment env)
+    // Límite de 5 MB para la subida de documentos
+    private const long LimiteBytes = 5 * 1024 * 1024;
+
+    private static readonly string[] ExtensionesPermitidas =
+        { ".pdf", ".docx", ".doc", ".txt", ".jpg", ".jpeg", ".png" };
+
+    public DocumentosModel(IWebHostEnvironment env, GestorClientes gestorClientes)
     {
         _env = env;
+        _gestorClientes = gestorClientes;
     }
 
     public string? UsuarioActual { get; set; }
     public string? NombreCompletoActual { get; set; }
-    public string? ClaveRecuperadaCookie { get; set; }
+    public string? EmailActual { get; set; }
     public string CarpetaUsuario { get; set; } = string.Empty;
     public string? MensajeExito { get; set; }
-    public string? MensajeError { get; set; }
 
     [BindProperty]
-    public IFormFile? DocumentoSubido { get; set; } 
+    public IFormFile? DocumentoSubido { get; set; }
 
     public List<string> ArchivosGuardados { get; set; } = new();
 
     public IActionResult OnGet()
     {
-        // 1. Validar que exista la sesión activa del usuario
+        // Validar que exista la sesión activa del usuario
         UsuarioActual = HttpContext.Session.GetString("UsuarioLogueado");
         if (string.IsNullOrEmpty(UsuarioActual))
         {
-            return RedirectToPage("/Registro");
+            TempData["Aviso"] = "Debe iniciar sesión para acceder a su espacio de gestión documental.";
+            return RedirectToPage("/Login");
         }
 
-        NombreCompletoActual = HttpContext.Session.GetString("NombreCompleto");
-
-        // 2. Leer la contraseña desde la Cookie
-        ClaveRecuperadaCookie = Request.Cookies["PasswordCookie"];
-
-        CargarArchivos();
+        CargarDatosPerfilYArchivos();
         return Page();
     }
 
@@ -49,44 +53,52 @@ public class DocumentosModel : PageModel
         UsuarioActual = HttpContext.Session.GetString("UsuarioLogueado");
         if (string.IsNullOrEmpty(UsuarioActual))
         {
-            return RedirectToPage("/Registro");
+            TempData["Aviso"] = "Su sesión ha expirado. Por favor, inicie sesión nuevamente.";
+            return RedirectToPage("/Login");
         }
-
-        NombreCompletoActual = HttpContext.Session.GetString("NombreCompleto");
-        ClaveRecuperadaCookie = Request.Cookies["PasswordCookie"];
 
         if (DocumentoSubido is null || DocumentoSubido.Length <= 0)
         {
-            MensajeError = "Debe seleccionar un documento legal para cargar.";
-            CargarArchivos();
-            return Page();
+            ModelState.AddModelError(nameof(DocumentoSubido), "Debe seleccionar un documento legal para subir.");
+        }
+        else
+        {
+            string extension = Path.GetExtension(DocumentoSubido.FileName).ToLowerInvariant();
+            if (!ExtensionesPermitidas.Contains(extension))
+            {
+                ModelState.AddModelError(
+                    nameof(DocumentoSubido),
+                    "Formato no permitido. Solo se aceptan archivos PDF, Word (.doc, .docx), TXT o imágenes (.jpg, .png).");
+            }
+
+            if (DocumentoSubido.Length > LimiteBytes)
+            {
+                ModelState.AddModelError(
+                    nameof(DocumentoSubido),
+                    "El archivo supera el tamaño máximo permitido de 5 MB.");
+            }
         }
 
-        // Validar extensiones de documentos legales
-        string extension = Path.GetExtension(DocumentoSubido.FileName).ToLowerInvariant();
-        string[] extensionesPermitidas = { ".pdf", ".docx", ".doc", ".txt" };
-        if (!extensionesPermitidas.Contains(extension))
+        if (!ModelState.IsValid)
         {
-            MensajeError = "Formato no permitido. Solo se aceptan documentos PDF, Word o TXT.";
-            CargarArchivos();
+            CargarDatosPerfilYArchivos();
             return Page();
         }
 
         // Ruta física del espacio personal del usuario dentro de wwwroot/documentos_legales
         string carpetaDestino = ObtenerRutaEspacioUsuario();
-        if (!Directory.Exists(carpetaDestino))
-        {
-            Directory.CreateDirectory(carpetaDestino);
-        }
+        Directory.CreateDirectory(carpetaDestino);
 
-        string nombreLimpio = Path.GetFileName(DocumentoSubido.FileName);
+        string nombreLimpio = Path.GetFileName(DocumentoSubido!.FileName);
         string rutaCompleta = Path.Combine(carpetaDestino, nombreLimpio);
 
-        // Control de duplicados 
+        // Control de duplicados con System.IO.File.Exists
         if (System.IO.File.Exists(rutaCompleta))
         {
-            MensajeError = $"El archivo '{nombreLimpio}' ya existe en su espacio personal.";
-            CargarArchivos();
+            ModelState.AddModelError(
+                nameof(DocumentoSubido),
+                $"Ya existe un documento llamado '{nombreLimpio}' en su espacio personal.");
+            CargarDatosPerfilYArchivos();
             return Page();
         }
 
@@ -96,16 +108,55 @@ public class DocumentosModel : PageModel
             await DocumentoSubido.CopyToAsync(stream);
         }
 
-        MensajeExito = $"Documento '{nombreLimpio}' subido con éxito a su espacio legal.";
-        CargarArchivos();
+        MensajeExito = $"El documento '{nombreLimpio}' fue cargado correctamente en su espacio personal.";
+        CargarDatosPerfilYArchivos();
         return Page();
     }
 
-    public IActionResult OnPostCerrarSesion()
+    public IActionResult OnPostEliminar(string nombreArchivo)
     {
-        HttpContext.Session.Clear();
-        Response.Cookies.Delete("PasswordCookie");
-        return RedirectToPage("/Index");
+        UsuarioActual = HttpContext.Session.GetString("UsuarioLogueado");
+        if (string.IsNullOrEmpty(UsuarioActual))
+        {
+            return RedirectToPage("/Login");
+        }
+
+        if (!string.IsNullOrEmpty(nombreArchivo))
+        {
+            string carpetaDestino = ObtenerRutaEspacioUsuario();
+            string rutaArchivo = Path.Combine(carpetaDestino, Path.GetFileName(nombreArchivo));
+
+            if (System.IO.File.Exists(rutaArchivo))
+            {
+                System.IO.File.Delete(rutaArchivo);
+                MensajeExito = $"El documento '{Path.GetFileName(nombreArchivo)}' fue eliminado.";
+            }
+        }
+
+        CargarDatosPerfilYArchivos();
+        return Page();
+    }
+
+    private void CargarDatosPerfilYArchivos()
+    {
+        NombreCompletoActual = HttpContext.Session.GetString("NombreCompleto");
+        var cliente = _gestorClientes.ObtenerPorUsuario(UsuarioActual!);
+        if (cliente is not null)
+        {
+            NombreCompletoActual ??= cliente.NombreApellido;
+            EmailActual = cliente.Email;
+        }
+
+        ArchivosGuardados.Clear();
+        string carpetaDestino = ObtenerRutaEspacioUsuario();
+        if (Directory.Exists(carpetaDestino))
+        {
+            ArchivosGuardados = Directory.GetFiles(carpetaDestino)
+                .Select(Path.GetFileName)
+                .Where(nombre => !string.IsNullOrEmpty(nombre) && !nombre.StartsWith("."))
+                .OrderBy(nombre => nombre)
+                .ToList()!;
+        }
     }
 
     private string ObtenerRutaEspacioUsuario()
@@ -123,23 +174,5 @@ public class DocumentosModel : PageModel
 
         CarpetaUsuario = usuarioSanitizado;
         return Path.Combine(_env.WebRootPath, "documentos_legales", CarpetaUsuario);
-    }
-
-    private void CargarArchivos()
-    {
-        ArchivosGuardados.Clear();
-        string carpetaDestino = ObtenerRutaEspacioUsuario();
-        if (Directory.Exists(carpetaDestino))
-        {
-            string[] rutas = Directory.GetFiles(carpetaDestino);
-            foreach (var r in rutas)
-            {
-                string nombre = Path.GetFileName(r);
-                if (!nombre.StartsWith("."))
-                {
-                    ArchivosGuardados.Add(nombre);
-                }
-            }
-        }
     }
 }

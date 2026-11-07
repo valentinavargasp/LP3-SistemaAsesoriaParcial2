@@ -1,9 +1,20 @@
+using SistemaAsesoria2.Servicios;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Servicios de Razor Pages
-builder.Services.AddRazorPages();
+// Servicios de Razor Pages y mensajes de validación numérica en español
+builder.Services.AddRazorPages().AddMvcOptions(options =>
+{
+    options.ModelBindingMessageProvider.SetValueMustBeANumberAccessor(
+        campo => $"El campo {campo} debe ser un valor numérico.");
+    options.ModelBindingMessageProvider.SetAttemptedValueIsInvalidAccessor(
+        (valor, campo) => $"El valor '{valor}' no es válido para {campo}.");
+});
 
-// Configuración de Sesión en memoria 
+// Servicio singleton en memoria para almacenar los clientes registrados
+builder.Services.AddSingleton<GestorClientes>();
+
+// Configuración de Sesión en memoria
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -25,7 +36,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Middleware de sesión 
+// Middleware de sesión (después de UseRouting y antes de MapRazorPages)
 app.UseSession();
 
 app.UseAuthorization();

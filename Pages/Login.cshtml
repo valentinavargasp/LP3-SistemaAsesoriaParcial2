@@ -1,0 +1,46 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="contenedor-estrecho">
+    <section class="tarjeta">
+        <div class="tarjeta-encabezado">
+            <img src="~/imagenes/logo 1.png" alt="Emblema Asesoría Legal Global" class="logo-formulario" />
+            <h1 class="tarjeta-titulo">Iniciar Sesión</h1>
+            <p class="tarjeta-subtitulo">Ingrese sus credenciales para acceder a su espacio personal de documentos legales.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Aviso))
+        {
+            <div class="alerta alerta-aviso">@Model.Aviso</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alerta alerta-error"></div>
+
+        <form method="post" novalidate>
+            <div class="grupo-campo">
+                <label asp-for="Usuario" class="etiqueta">Nombre de Usuario *</label>
+                <input asp-for="Usuario" class="control-input" placeholder="Ingrese su usuario" />
+                <span asp-validation-for="Usuario" class="mensaje-error-campo"></span>
+            </div>
+
+            <div class="grupo-campo">
+                <label asp-for="Password" class="etiqueta">Contraseña *</label>
+                <input asp-for="Password" class="control-input" placeholder="Ingrese su contraseña" />
+                <span asp-validation-for="Password" class="mensaje-error-campo"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primario btn-bloque">Ingresar</button>
+
+            <div class="pie-formulario">
+                ¿Todavía no tiene una cuenta? <a asp-page="/Registro">Registrarse como cliente</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

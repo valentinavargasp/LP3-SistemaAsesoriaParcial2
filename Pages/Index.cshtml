@@ -1,17 +1,45 @@
-﻿@page
+@page
 @model IndexModel
+@using Microsoft.AspNetCore.Http
 @{
     ViewData["Title"] = "Inicio";
+    string? usuarioActivo = HttpContext.Session.GetString("UsuarioLogueado");
 }
 
-<div class="p-5 mb-4 bg-white rounded-4 shadow-sm border text-center">
-    <img src="~/imagenes/logo 2.png" alt="Logo Asesoría Legal" height="120" class="mb-3" />
-    <h1 class="display-5 fw-bold text-dark">Asesoría Legal Global</h1>
-    <p class="lead text-muted col-md-8 mx-auto">
-        Plataforma segura para el registro de clientes y gestión centralizada de documentos jurídicos.
+<section class="hero-card">
+    <img src="~/imagenes/logo 3.png" alt="Banner Corporativo Asesoría Legal Global" class="hero-banner" />
+
+    <h1 class="hero-titulo">Asesoría Legal Global</h1>
+    <p class="hero-descripcion">
+        Brindamos servicios integrales de asesoramiento en temas jurídicos y corporativos.
+        Regístrese en nuestra plataforma para gestionar y resguardar sus documentos legales en un espacio personal seguro.
     </p>
-    <div class="mt-4">
-        <a asp-page="/Registro" class="btn btn-legal btn-lg px-4 me-2">Registrarme como Cliente</a>
-        <a asp-page="/Documentos" class="btn btn-outline-secondary btn-lg px-4">Acceder a Gestión Documental</a>
+
+    <div class="hero-acciones">
+        @if (string.IsNullOrEmpty(usuarioActivo))
+        {
+            <a asp-page="/Registro" class="btn btn-primario">Registrarme como Cliente</a>
+            <a asp-page="/Login" class="btn btn-secundario">Iniciar Sesión</a>
+        }
+        else
+        {
+            <a asp-page="/Documentos" class="btn btn-primario">Ir a Mi Espacio Documental (@usuarioActivo)</a>
+            <a asp-page="/Salir" class="btn btn-secundario">Cerrar Sesión</a>
+        }
     </div>
-</div>
+</section>
+
+<section class="pilares-grid">
+    <article class="pilar-card">
+        <h3>1. Registro de Clientes</h3>
+        <p>Alta rápida con validación de identidad, mayoría de edad requerida y credenciales protegidas.</p>
+    </article>
+    <article class="pilar-card">
+        <h3>2. Espacio Personal</h3>
+        <p>Acceso mediante sesión personalizada para que cada cliente administre únicamente su propia documentación.</p>
+    </article>
+    <article class="pilar-card">
+        <h3>3. Resguardo Documental</h3>
+        <p>Carga verificada de escritos, contratos y expedientes en formatos autorizados con control de duplicados.</p>
+    </article>
+</section>
