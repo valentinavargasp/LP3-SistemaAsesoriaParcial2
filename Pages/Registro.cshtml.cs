@@ -72,11 +72,11 @@ public class RegistroModel : PageModel
             return Page();
         }
 
-        // 1. Almacenar el nombre de usuario en una variable de Sesión (servidor)
-        HttpContext.Session.SetString("UsuarioLogueado", nuevoCliente.Usuario);
+        // 1. Al hacer clic en "Registrar", almacenar el nombre de usuario en una Sesión (servidor)
+        HttpContext.Session.SetString("UsuarioRegistrado", nuevoCliente.Usuario);
         HttpContext.Session.SetString("NombreCompleto", nuevoCliente.NombreApellido);
 
-        // 2. Almacenar la contraseña en una Cookie (cliente)
+        // 2. Al hacer clic en "Registrar", almacenar la contraseña en una Cookie (cliente)
         CookieOptions opciones = new CookieOptions
         {
             Expires = DateTimeOffset.Now.AddDays(7),
@@ -85,7 +85,11 @@ public class RegistroModel : PageModel
         };
         Response.Cookies.Append("PasswordCookie", Password, opciones);
 
-        // 3. Dirigir al usuario a su propio espacio de gestión de archivos
-        return RedirectToPage("/Documentos");
+        // Si había una sesión iniciada previa de otro usuario, cerrarla para que inicie sesión el nuevo
+        HttpContext.Session.Remove("UsuarioLogueado");
+
+        // 3. Mostrar confirmación en el Inicio para que el usuario inicie sesión
+        TempData["MensajeRegistro"] = $"¡Usuario '{nuevoCliente.Usuario}' registrado correctamente! Ahora puede iniciar sesión para acceder a su espacio documental.";
+        return RedirectToPage("/Index");
     }
 }

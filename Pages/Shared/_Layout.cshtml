@@ -26,15 +26,11 @@
             <nav class="nav-principal" aria-label="Navegación principal">
                 <ul class="nav-lista">
                     <li><a class="nav-enlace" asp-page="/Index">Inicio</a></li>
-                    @if (string.IsNullOrEmpty(usuarioSesion))
+                    <li><a class="nav-enlace" asp-page="/Registro">Registro</a></li>
+                    <li><a class="nav-enlace" asp-page="/Login">Iniciar Sesión</a></li>
+                    <li><a class="nav-enlace" asp-page="/Documentos">Gestión Documental</a></li>
+                    @if (!string.IsNullOrEmpty(usuarioSesion))
                     {
-                        <li><a class="nav-enlace" asp-page="/Registro">Registro</a></li>
-                        <li><a class="nav-enlace" asp-page="/Login">Iniciar Sesión</a></li>
-                        <li><a class="nav-enlace" asp-page="/Documentos">Gestión Documental</a></li>
-                    }
-                    else
-                    {
-                        <li><a class="nav-enlace" asp-page="/Documentos">Mis Documentos</a></li>
                         <li class="nav-usuario-item">
                             <span class="badge-usuario">👤 @usuarioSesion</span>
                             <a class="btn-nav-salir" asp-page="/Salir">Cerrar Sesión</a>

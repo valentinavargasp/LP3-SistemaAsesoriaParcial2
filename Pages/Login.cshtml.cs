@@ -27,14 +27,14 @@ public class LoginModel : PageModel
     [TempData]
     public string? Aviso { get; set; }
 
-    public IActionResult OnGet()
+    public void OnGet()
     {
-        if (!string.IsNullOrEmpty(HttpContext.Session.GetString("UsuarioLogueado")))
+        // Si acaba de registrarse, precargar el nombre de usuario guardado en la sesión
+        string? usuarioRegistrado = HttpContext.Session.GetString("UsuarioRegistrado");
+        if (!string.IsNullOrEmpty(usuarioRegistrado))
         {
-            return RedirectToPage("/Documentos");
+            Usuario = usuarioRegistrado;
         }
-
-        return Page();
     }
 
     public IActionResult OnPost()
@@ -44,16 +44,33 @@ public class LoginModel : PageModel
             return Page();
         }
 
-        var cliente = _gestorClientes.ValidarCredenciales(Usuario.Trim(), Password);
-        if (cliente is null)
+        string usuarioIngresado = Usuario.Trim();
+
+        // 1. Verificar contra la Sesión y la Cookie creadas en el Registro
+        string? usuarioEnSesion = HttpContext.Session.GetString("UsuarioRegistrado");
+        string? claveEnCookie = Request.Cookies["PasswordCookie"];
+
+        bool coincideSesionYCookie =
+            !string.IsNullOrEmpty(usuarioEnSesion) &&
+            !string.IsNullOrEmpty(claveEnCookie) &&
+            string.Equals(usuarioEnSesion, usuarioIngresado, StringComparison.OrdinalIgnoreCase) &&
+            claveEnCookie == Password;
+
+        // 2. O verificar contra el servicio de clientes registrados en memoria
+        var cliente = _gestorClientes.ValidarCredenciales(usuarioIngresado, Password);
+
+        if (!coincideSesionYCookie && cliente is null)
         {
             ModelState.AddModelError(string.Empty, "El usuario o la contraseña ingresados son incorrectos.");
             return Page();
         }
 
-        // Guardar el usuario en la variable de sesión y dirigir a su espacio de documentos
-        HttpContext.Session.SetString("UsuarioLogueado", cliente.Usuario);
-        HttpContext.Session.SetString("NombreCompleto", cliente.NombreApellido);
+        string nombreUsuarioFinal = cliente?.Usuario ?? usuarioEnSesion!;
+        string nombreCompletoFinal = cliente?.NombreApellido ?? HttpContext.Session.GetString("NombreCompleto") ?? nombreUsuarioFinal;
+
+        // Activar la sesión del usuario logueado y redirigir a su espacio de gestión de archivos
+        HttpContext.Session.SetString("UsuarioLogueado", nombreUsuarioFinal);
+        HttpContext.Session.SetString("NombreCompleto", nombreCompletoFinal);
 
         return RedirectToPage("/Documentos");
     }

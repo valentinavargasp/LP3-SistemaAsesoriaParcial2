@@ -6,13 +6,20 @@
     string? usuarioActivo = HttpContext.Session.GetString("UsuarioLogueado");
 }
 
+@if (!string.IsNullOrEmpty(Model.MensajeRegistro))
+{
+    <div class="alerta alerta-exito" style="text-align: center; font-weight: 600;">
+        ✅ @Model.MensajeRegistro
+    </div>
+}
+
 <section class="hero-card">
     <img src="~/imagenes/logo 3.png" alt="Banner Corporativo Asesoría Legal Global" class="hero-banner" />
 
     <h1 class="hero-titulo">Asesoría Legal Global</h1>
     <p class="hero-descripcion">
         Brindamos servicios integrales de asesoramiento en temas jurídicos y corporativos.
-        Regístrese en nuestra plataforma para gestionar y resguardar sus documentos legales en un espacio personal seguro.
+        Regístrese en nuestra plataforma e inicie sesión para gestionar y resguardar sus documentos legales en un espacio personal seguro.
     </p>
 
     <div class="hero-acciones">
@@ -32,14 +39,14 @@
 <section class="pilares-grid">
     <article class="pilar-card">
         <h3>1. Registro de Clientes</h3>
-        <p>Alta rápida con validación de identidad, mayoría de edad requerida y credenciales protegidas.</p>
+        <p>Alta rápida con validación de datos, mayoría de edad requerida y almacenamiento de credenciales en sesión y cookie.</p>
     </article>
     <article class="pilar-card">
-        <h3>2. Espacio Personal</h3>
-        <p>Acceso mediante sesión personalizada para que cada cliente administre únicamente su propia documentación.</p>
+        <h3>2. Inicio de Sesión</h3>
+        <p>Autenticación de clientes registrados con redirección automática a su espacio personal de archivos.</p>
     </article>
     <article class="pilar-card">
         <h3>3. Resguardo Documental</h3>
-        <p>Carga verificada de escritos, contratos y expedientes en formatos autorizados con control de duplicados.</p>
+        <p>Carga segura de escritos, contratos y expedientes en formatos autorizados con control de duplicados.</p>
     </article>
 </section>
