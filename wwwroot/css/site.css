@@ -151,6 +151,49 @@ body {
     border-color: #dc2626;
 }
 
+/* Botón menú hamburguesa (oculto en escritorio) */
+.btn-hamburguesa {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    background: transparent;
+    border: 1px solid rgba(197, 160, 89, 0.5);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-hamburguesa:hover {
+    background-color: rgba(197, 160, 89, 0.15);
+    border-color: var(--color-acento);
+}
+
+.linea-hamburguesa {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: var(--color-acento);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.btn-hamburguesa.activo .linea-hamburguesa:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.btn-hamburguesa.activo .linea-hamburguesa:nth-child(2) {
+    opacity: 0;
+}
+
+.btn-hamburguesa.activo .linea-hamburguesa:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
 /* ==================== CONTENIDO PRINCIPAL ==================== */
 .contenido-principal {
     flex: 1;
@@ -541,15 +584,34 @@ body {
     }
 }
 
-@media (max-width: 640px) {
-    .nav-contenedor {
-        flex-direction: column;
-        align-items: flex-start;
+@media (max-width: 768px) {
+    .btn-hamburguesa {
+        display: flex;
+    }
+
+    .nav-principal {
+        display: none;
+        width: 100%;
+        padding-top: 0.75rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-principal.abierto {
+        display: block;
     }
 
     .nav-lista {
+        flex-direction: column;
+        align-items: stretch;
         width: 100%;
-        justify-content: flex-start;
+        gap: 0.35rem;
+    }
+
+    .nav-enlace {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 0.85rem;
     }
 
     .nav-usuario-item {
@@ -558,10 +620,13 @@ body {
         border-left: none;
         width: 100%;
         justify-content: space-between;
-        padding-top: 0.4rem;
+        padding-top: 0.65rem;
+        margin-top: 0.25rem;
         border-top: 1px solid rgba(255, 255, 255, 0.15);
     }
+}
 
+@media (max-width: 640px) {
     .fila-campos {
         grid-template-columns: 1fr;
         gap: 0;
