@@ -27,14 +27,14 @@ public class LoginModel : PageModel
     [TempData]
     public string? Aviso { get; set; }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
-        // Si acaba de registrarse, precargar el nombre de usuario guardado en la sesión
-        string? usuarioRegistrado = HttpContext.Session.GetString("UsuarioRegistrado");
-        if (!string.IsNullOrEmpty(usuarioRegistrado))
+        if (!string.IsNullOrEmpty(HttpContext.Session.GetString("UsuarioLogueado")))
         {
-            Usuario = usuarioRegistrado;
+            return RedirectToPage("/Documentos");
         }
+
+        return Page();
     }
 
     public IActionResult OnPost()
