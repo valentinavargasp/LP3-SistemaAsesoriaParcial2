@@ -63,11 +63,15 @@
                 <div class="alerta alerta-error">@Model.MensajeError</div>
             }
 
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" id="formSubirDocumento" novalidate>
                 <div class="grupo-campo">
                     <label asp-for="DocumentoSubido" class="etiqueta">Seleccionar documento desde su equipo *</label>
-                    <input asp-for="DocumentoSubido" type="file" class="control-input" />
-                    <span asp-validation-for="DocumentoSubido" class="mensaje-error-campo"></span>
+                    <input asp-for="DocumentoSubido"
+                           type="file"
+                           id="inputArchivoSubir"
+                           class="control-input"
+                           accept=".pdf,.doc,.docx,.txt" />
+                    <span asp-validation-for="DocumentoSubido" id="errorArchivoCliente" class="mensaje-error-campo"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primario">Subir Documento al Repositorio</button>
@@ -138,6 +142,63 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        (function () {
+            const formSubir = document.getElementById('formSubirDocumento');
+            const inputArchivo = document.getElementById('inputArchivoSubir');
+            const spanError = document.getElementById('errorArchivoCliente');
+            const extensionesValidas = ['.pdf', '.doc', '.docx', '.txt'];
+            const maxBytes = 5 * 1024 * 1024; // 5 MB
+
+            function validarArchivoSeleccionado() {
+                if (!inputArchivo || !spanError) return true;
+
+                if (!inputArchivo.files || inputArchivo.files.length === 0) {
+                    spanError.textContent = 'Debe seleccionar un documento legal para subir.';
+                    inputArchivo.classList.add('input-validation-error');
+                    return false;
+                }
+
+                const archivo = inputArchivo.files[0];
+                const nombre = archivo.name.toLowerCase();
+                const puntoIndex = nombre.lastIndexOf('.');
+                const ext = puntoIndex !== -1 ? nombre.substring(puntoIndex) : '';
+
+                if (!extensionesValidas.includes(ext)) {
+                    spanError.textContent = "El formato '" + (ext || 'desconocido') + "' no está permitido. Solo se aceptan documentos PDF (.pdf), Word (.doc, .docx) o texto (.txt).";
+                    inputArchivo.classList.add('input-validation-error');
+                    return false;
+                }
+
+                if (archivo.size <= 0) {
+                    spanError.textContent = 'El archivo seleccionado está vacío.';
+                    inputArchivo.classList.add('input-validation-error');
+                    return false;
+                }
+
+                if (archivo.size > maxBytes) {
+                    spanError.textContent = 'El archivo supera el tamaño máximo permitido de 5 MB.';
+                    inputArchivo.classList.add('input-validation-error');
+                    return false;
+                }
+
+                spanError.textContent = '';
+                inputArchivo.classList.remove('input-validation-error');
+                return true;
+            }
+
+            if (inputArchivo) {
+                inputArchivo.addEventListener('change', validarArchivoSeleccionado);
+            }
+
+            if (formSubir) {
+                formSubir.addEventListener('submit', function (e) {
+                    if (!validarArchivoSeleccionado()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        })();
+
         function abrirModalEliminar(nombreArchivo) {
             const modal = document.getElementById('modalConfirmarEliminar');
             const textoArchivo = document.getElementById('nombreArchivoModal');

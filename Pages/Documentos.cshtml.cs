@@ -7,6 +7,8 @@ using SistemaAsesoria2.Servicios;
 
 namespace SistemaAsesoria2.Pages;
 
+[RequestSizeLimit(100 * 1024 * 1024)]
+[RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)]
 public class DocumentosModel : PageModel
 {
     private readonly IWebHostEnvironment _env;
@@ -15,7 +17,7 @@ public class DocumentosModel : PageModel
     // Límite de 5 MB para la subida de documentos
     private const long LimiteBytes = 5 * 1024 * 1024;
 
-    // Solo documentos legales (se rechazan imágenes como .png, .jpg, ejecutables, etc.)
+    // Solo documentos legales (se rechazan .zip, imágenes .png/.jpg, ejecutables, etc.)
     private static readonly string[] ExtensionesPermitidas =
         { ".pdf", ".docx", ".doc", ".txt" };
 
