@@ -49,7 +49,7 @@
                 <img src="~/imagenes/logo 1.png" alt="Icono Consultoría Legal" />
                 <div>
                     <h1 class="tarjeta-titulo" style="font-size: 1.35rem;">Cargar Documento Legal</h1>
-                    <p class="tarjeta-subtitulo">Formatos admitidos: PDF, Word (.doc, .docx), TXT o Imágenes (.jpg, .png) — Máx. 5 MB.</p>
+                    <p class="tarjeta-subtitulo">Formatos admitidos: PDF (.pdf), Word (.doc, .docx) o Texto (.txt) — Máx. 5 MB.</p>
                 </div>
             </div>
 
@@ -58,10 +58,15 @@
                 <div class="alerta alerta-exito">@Model.MensajeExito</div>
             }
 
+            @if (!string.IsNullOrEmpty(Model.MensajeError))
+            {
+                <div class="alerta alerta-error">@Model.MensajeError</div>
+            }
+
             <form method="post" enctype="multipart/form-data">
                 <div class="grupo-campo">
                     <label asp-for="DocumentoSubido" class="etiqueta">Seleccionar documento desde su equipo *</label>
-                    <input asp-for="DocumentoSubido" type="file" class="control-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" />
+                    <input asp-for="DocumentoSubido" type="file" class="control-input" />
                     <span asp-validation-for="DocumentoSubido" class="mensaje-error-campo"></span>
                 </div>
 
@@ -84,19 +89,19 @@
                         <li class="item-archivo">
                             <span class="nombre-archivo">📄 @archivo</span>
                             <div class="acciones-archivo">
-                                <a href="~/documentos_legales/@Model.CarpetaUsuario/@Uri.EscapeDataString(archivo)"
+                                <a asp-page="/Documentos"
+                                   asp-page-handler="Ver"
+                                   asp-route-nombreArchivo="@archivo"
                                    target="_blank"
                                    class="btn btn-secundario btn-pequeno">
                                     Ver / Descargar
                                 </a>
-                                <form method="post" asp-page-handler="Eliminar" class="form-inline">
-                                    <input type="hidden" name="nombreArchivo" value="@archivo" />
-                                    <button type="submit"
-                                            class="btn btn-peligro"
-                                            onclick="return confirm('¿Está seguro de que desea eliminar este documento?');">
-                                        Eliminar
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn btn-peligro"
+                                        data-archivo="@archivo"
+                                        onclick="abrirModalEliminar(this.getAttribute('data-archivo'))">
+                                    Eliminar
+                                </button>
                             </div>
                         </li>
                     }
@@ -106,6 +111,66 @@
     </div>
 </div>
 
+<!-- Modal Personalizado de Confirmación para Eliminar -->
+<div id="modalConfirmarEliminar" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTituloEliminar" hidden>
+    <div class="modal-caja">
+        <div class="modal-icono-alerta">⚠️</div>
+        <h3 id="modalTituloEliminar" class="modal-titulo">Confirmar eliminación</h3>
+        <p class="modal-texto">
+            ¿Está seguro de que desea eliminar el documento <strong id="nombreArchivoModal"></strong> de su espacio personal?
+        </p>
+        <p class="modal-subtexto">Esta acción no se puede deshacer.</p>
+
+        <form method="post" asp-page-handler="Eliminar" id="formEliminarDocumento">
+            <input type="hidden" name="nombreArchivo" id="inputNombreArchivoEliminar" value="" />
+            <div class="modal-acciones">
+                <button type="button" class="btn btn-secundario btn-pequeno" onclick="cerrarModalEliminar()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-confirmar-peligro btn-pequeno">
+                    Sí, eliminar documento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function abrirModalEliminar(nombreArchivo) {
+            const modal = document.getElementById('modalConfirmarEliminar');
+            const textoArchivo = document.getElementById('nombreArchivoModal');
+            const inputArchivo = document.getElementById('inputNombreArchivoEliminar');
+
+            if (modal && textoArchivo && inputArchivo) {
+                textoArchivo.textContent = '"' + nombreArchivo + '"';
+                inputArchivo.value = nombreArchivo;
+                modal.removeAttribute('hidden');
+                modal.classList.add('activo');
+            }
+        }
+
+        function cerrarModalEliminar() {
+            const modal = document.getElementById('modalConfirmarEliminar');
+            if (modal) {
+                modal.classList.remove('activo');
+                modal.setAttribute('hidden', 'hidden');
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera de la caja o presionar Escape
+        document.addEventListener('click', function (e) {
+            const modal = document.getElementById('modalConfirmarEliminar');
+            if (modal && e.target === modal) {
+                cerrarModalEliminar();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                cerrarModalEliminar();
+            }
+        });
+    </script>
 }

@@ -51,7 +51,7 @@ El proyecto fue construido en **ASP.NET Core Razor Pages** aplicando los conteni
 - **Carga y Administración Segura de Documentos (`Pages/Documentos.cshtml.cs`):**
   - Cada cliente cuenta con su propia subcarpeta aislada dentro del servidor: `wwwroot/documentos_legales/<usuario>/`.
   - Validación de archivo seleccionado no vacío (`DocumentoSubido.Length > 0`).
-  - Lista blanca de extensiones permitidas (`.pdf`, `.doc`, `.docx`, `.txt`, `.jpg`, `.jpeg`, `.png`).
+  - Lista blanca de extensiones permitidas (`.pdf`, `.doc`, `.docx`, `.txt`).
   - Límite de tamaño máximo por archivo de **5 MB**.
   - Limpieza del nombre del archivo mediante `Path.GetFileName()` para evitar ataques de rutas relativas (*Path Traversal*).
   - Control de archivos duplicados con `System.IO.File.Exists()` para evitar sobrescribir documentos existentes.

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.StaticFiles;
 using SistemaAsesoria2.Servicios;
 
 namespace SistemaAsesoria2.Pages;
@@ -14,8 +15,9 @@ public class DocumentosModel : PageModel
     // Límite de 5 MB para la subida de documentos
     private const long LimiteBytes = 5 * 1024 * 1024;
 
+    // Solo documentos legales (se rechazan imágenes como .png, .jpg, ejecutables, etc.)
     private static readonly string[] ExtensionesPermitidas =
-        { ".pdf", ".docx", ".doc", ".txt", ".jpg", ".jpeg", ".png" };
+        { ".pdf", ".docx", ".doc", ".txt" };
 
     public DocumentosModel(IWebHostEnvironment env, GestorClientes gestorClientes)
     {
@@ -27,7 +29,12 @@ public class DocumentosModel : PageModel
     public string? NombreCompletoActual { get; set; }
     public string? EmailActual { get; set; }
     public string CarpetaUsuario { get; set; } = string.Empty;
+
+    [TempData]
     public string? MensajeExito { get; set; }
+
+    [TempData]
+    public string? MensajeError { get; set; }
 
     [BindProperty]
     public IFormFile? DocumentoSubido { get; set; }
@@ -46,6 +53,46 @@ public class DocumentosModel : PageModel
 
         CargarDatosPerfilYArchivos();
         return Page();
+    }
+
+    public IActionResult OnGetVer(string nombreArchivo)
+    {
+        UsuarioActual = HttpContext.Session.GetString("UsuarioLogueado");
+        if (string.IsNullOrEmpty(UsuarioActual))
+        {
+            return RedirectToPage("/Login");
+        }
+
+        if (string.IsNullOrEmpty(nombreArchivo))
+        {
+            return RedirectToPage();
+        }
+
+        string carpetaDestino = ObtenerRutaEspacioUsuario();
+        string nombreLimpio = Path.GetFileName(nombreArchivo);
+        string rutaArchivo = Path.Combine(carpetaDestino, nombreLimpio);
+
+        if (!System.IO.File.Exists(rutaArchivo))
+        {
+            MensajeError = $"No se encontró el documento '{nombreLimpio}'.";
+            return RedirectToPage();
+        }
+
+        var provider = new FileExtensionContentTypeProvider();
+        if (!provider.TryGetContentType(nombreLimpio, out string? contentType))
+        {
+            contentType = "application/octet-stream";
+        }
+
+        string extension = Path.GetExtension(nombreLimpio).ToLowerInvariant();
+        if (extension == ".pdf" || extension == ".txt")
+        {
+            // Se abre directamente en la pestaña del navegador para visualizarlo
+            return PhysicalFile(rutaArchivo, contentType);
+        }
+
+        // Para documentos Word (.doc / .docx), se descarga con su nombre original
+        return PhysicalFile(rutaArchivo, contentType, nombreLimpio);
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -68,7 +115,7 @@ public class DocumentosModel : PageModel
             {
                 ModelState.AddModelError(
                     nameof(DocumentoSubido),
-                    "Formato no permitido. Solo se aceptan archivos PDF, Word (.doc, .docx), TXT o imágenes (.jpg, .png).");
+                    $"El formato '{extension}' no está permitido. Solo se aceptan documentos PDF (.pdf), Word (.doc, .docx) o texto (.txt).");
             }
 
             if (DocumentoSubido.Length > LimiteBytes)
@@ -109,8 +156,7 @@ public class DocumentosModel : PageModel
         }
 
         MensajeExito = $"El documento '{nombreLimpio}' fue cargado correctamente en su espacio personal.";
-        CargarDatosPerfilYArchivos();
-        return Page();
+        return RedirectToPage();
     }
 
     public IActionResult OnPostEliminar(string nombreArchivo)
@@ -121,20 +167,27 @@ public class DocumentosModel : PageModel
             return RedirectToPage("/Login");
         }
 
-        if (!string.IsNullOrEmpty(nombreArchivo))
+        if (string.IsNullOrWhiteSpace(nombreArchivo))
         {
-            string carpetaDestino = ObtenerRutaEspacioUsuario();
-            string rutaArchivo = Path.Combine(carpetaDestino, Path.GetFileName(nombreArchivo));
-
-            if (System.IO.File.Exists(rutaArchivo))
-            {
-                System.IO.File.Delete(rutaArchivo);
-                MensajeExito = $"El documento '{Path.GetFileName(nombreArchivo)}' fue eliminado.";
-            }
+            MensajeError = "No se especificó el documento a eliminar.";
+            return RedirectToPage();
         }
 
-        CargarDatosPerfilYArchivos();
-        return Page();
+        string carpetaDestino = ObtenerRutaEspacioUsuario();
+        string nombreLimpio = Path.GetFileName(nombreArchivo);
+        string rutaArchivo = Path.Combine(carpetaDestino, nombreLimpio);
+
+        if (System.IO.File.Exists(rutaArchivo))
+        {
+            System.IO.File.Delete(rutaArchivo);
+            MensajeExito = $"El documento '{nombreLimpio}' fue eliminado correctamente.";
+        }
+        else
+        {
+            MensajeError = $"No se encontró el archivo '{nombreLimpio}' para eliminar.";
+        }
+
+        return RedirectToPage();
     }
 
     private void CargarDatosPerfilYArchivos()
